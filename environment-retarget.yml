@@ -1,0 +1,23 @@
+# GMR 动作重定向环境（可选，仅重定向管线需要）
+# 使用方法: conda env create -f environment-retarget.yml
+name: t1-retarget
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - scipy
+  - libstdcxx-ng
+  - pip:
+    - general-motion-retargeting>=0.2.0
+    - mink
+    - mujoco
+    - smplx @ git+https://github.com/vchoutas/smplx
+    - opencv-python
+    - qpsolvers[proxqp]
+    - rich
+    - tqdm
+    - natsort
+    - imageio[ffmpeg]

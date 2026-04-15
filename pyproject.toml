@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "t1-amp-walking"
+version = "1.0.0"
+description = "Booster T1 Humanoid AMP Walking — 训练框架(mjlab) + 动作重定向(GMR) + Sim2Sim 全流程"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  # ---- 物理引擎 ----
+  "mujoco>=3.6.0",
+  "mujoco-warp>=3.6.0",
+  # ---- GPU 并行仿真 ----
+  "warp-lang>=1.12.0",
+  # ---- 深度学习 ----
+  "torch>=2.7.0",
+  # ---- RL 库 (PPO + AMP 判别器) ----
+  "rsl-rl-lib==5.0.1",
+  # ---- 工具库 ----
+  "numpy>=2.2",
+  "prettytable",
+  "tqdm",
+  "tyro>=1.0.1",
+  "torchrunx>=0.3.4",
+  "trimesh>=4.8.3",
+  "viser>=1.0.24",
+  "mediapy>=1.2.6",
+  "imageio-ffmpeg",
+  "tensordict",
+  "tensorboard>=2.20.0",
+  "onnxscript>=0.5.4",
+  "wandb>=0.22.3",
+]
+
+[project.optional-dependencies]
+# 动作重定向 (GMR) — 仅从原始动捕生成运动数据时需要
+retarget = [
+  "mink",
+  "loop_rate_limiters",
+  "scipy",
+  "qpsolvers[proxqp]",
+  "rich",
+  "opencv-python",
+  "natsort",
+  "psutil",
+  "smplx @ git+https://github.com/vchoutas/smplx",
+  "protobuf",
+  "redis[hiredis]",
+  "imageio[ffmpeg]",
+]
+
+[project.scripts]
+train = "mjlab.scripts.train:main"
+play = "mjlab.scripts.play:main"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["mjlab*", "general_motion_retargeting*"]
+
+[tool.setuptools.package-data]
+# 包含所有非 Python 数据文件
+"mjlab" = [
+  "py.typed",
+  "asset_zoo/robots/*/meshes/*.STL",
+  "asset_zoo/robots/*/meshes/*.stl",
+  "asset_zoo/robots/*/xmls/*.xml",
+  "asset_zoo/robots/*/xmls/assets/*.stl",
+  "asset_zoo/robots/*/xmls/assets/*.STL",
+  "asset_zoo/robots/*/urdf/*.urdf",
+  "asset_zoo/robots/*/urdf/meshes/**/*.stl",
+  "asset_zoo/robots/*/urdf/meshes/**/*.STL",
+  "tasks/amp/data/**/*.pkl",
+]
+"general_motion_retargeting" = [
+  "ik_configs/*.json",
+]

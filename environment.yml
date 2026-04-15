@@ -1,0 +1,23 @@
+# T1-AMP-Walking Conda 环境 (训练 + Sim2Sim)
+# 使用方法:
+#   conda env create -f environment.yml
+#   conda activate t1-amp
+#   pip install -e .        # 安装本项目（含 mjlab + GMR 源码）
+name: t1-amp
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - numpy>=2.2
+  - scipy
+  - tqdm
+  - tensorboard
+  # CUDA 工具链 (根据实际 GPU 调整版本)
+  - pytorch-cuda=12.8
+  - pip:
+    # 直接安装本项目（会自动拉取 mujoco, torch, rsl-rl-lib 等所有依赖）
+    - -e .

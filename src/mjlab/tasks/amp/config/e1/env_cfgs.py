@@ -1,6 +1,6 @@
-"""Booster T1 AMP 环境配置文件。
+"""Booster E1 AMP 环境配置文件。
 
-该模块定义了T1人形机器人的AMP（Adversarial Motion Priors）环境配置，
+该模块定义了 E1 人形机器人的 AMP（Adversarial Motion Priors）环境配置，
 包括观测、动作、命令、奖励、终止条件等。
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from mjlab.asset_zoo.robots import T1_ACTION_SCALE, get_t1_robot_cfg
+from mjlab.asset_zoo.robots.e1 import E1_ACTION_SCALE, get_e1_robot_cfg
 from mjlab.envs import mdp as envs_mdp
 from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.envs.mdp.rewards import joint_pos_limits
@@ -35,28 +35,19 @@ from mjlab.viewer import ViewerConfig
 
 # 运动数据目录路径
 MOTION_DATA_DIR = str(
-  Path(__file__).resolve().parent.parent.parent / "data" / "t1_motions"
+  Path(__file__).resolve().parent.parent.parent / "data" / "e1_motions"
 )
 
-# AMP 模型使用的历史步数
 AMP_NUM_STEPS = 3
-# 动画项的名称
-ANIMATION_TERM_NAME = "t1_anim"
-# 运动数据项的名称
-MOTION_DATA_TERM_NAME = "t1_motion"
+ANIMATION_TERM_NAME = "e1_anim"
+MOTION_DATA_TERM_NAME = "e1_motion"
 
 
-def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
-  """为 Booster T1 创建 AMP 环境配置。
-  Args:
-    play: 是否为播放模式（true则运行时间无限长）
-  Returns:
-    AmpEnvCfg: T1机器人的完整环境配置
-  """
-  # 脚部碰撞体几何体名称
+def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
+  """为 Booster E1 创建 AMP 环境配置。"""
+
   foot_geoms = ("l_foot_collision", "r_foot_collision")
 
-  # 脚部与地面接触传感器配置
   feet_ground_cfg = ContactSensorCfg(
     name="feet_ground_contact",
     primary=ContactMatch(mode="geom", pattern=foot_geoms, entity="robot"),
@@ -66,7 +57,7 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     num_slots=1,
     track_air_time=True,
   )
-  # 非脚部与地面接触传感器配置
+
   nonfoot_ground_cfg = ContactSensorCfg(
     name="nonfoot_ground_touch",
     primary=ContactMatch(
@@ -82,7 +73,6 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     history_length=4,
   )
 
-  # 演员网络观测项（用于策略网络）
   actor_terms = {
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
     "projected_gravity": ObservationTermCfg(func=envs_mdp.projected_gravity),
@@ -95,7 +85,6 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "actions": ObservationTermCfg(func=envs_mdp.last_action),
   }
 
-  # 评论家网络观测项（用于价值网络）
   critic_terms = {
     "base_lin_vel": ObservationTermCfg(func=envs_mdp.base_lin_vel),
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
@@ -109,14 +98,12 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "actions": ObservationTermCfg(func=envs_mdp.last_action),
   }
 
-  # 判别器网络观测项（用于动作判别）
   disc_terms = {
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
     "joint_pos": ObservationTermCfg(func=envs_mdp.joint_pos),
     "joint_vel": ObservationTermCfg(func=envs_mdp.joint_vel),
   }
 
-  # 判别器演示观测项（参考动作数据）
   disc_demo_terms = {
     "ref_root_ang_vel_b": ObservationTermCfg(
       func=mdp.ref_root_ang_vel_b,
@@ -132,21 +119,17 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 观测配置分组
   observations = {
-    # 演员网络（策略网络）观测
     "actor": ObservationGroupCfg(
       terms=actor_terms,
       concatenate_terms=True,
       enable_corruption=True,
     ),
-    # 评论家网络（价值网络）观测
     "critic": ObservationGroupCfg(
       terms=critic_terms,
       concatenate_terms=True,
       enable_corruption=False,
     ),
-    # 判别器网络观测
     "disc": ObservationGroupCfg(
       terms=disc_terms,
       concatenate_terms=True,
@@ -155,7 +138,6 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       history_length=AMP_NUM_STEPS,
       flatten_history_dim=False,
     ),
-    # 判别器演示观测
     "disc_demo": ObservationGroupCfg(
       terms=disc_demo_terms,
       concatenate_terms=True,
@@ -164,17 +146,15 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 动作配置
   actions: dict[str, ActionTermCfg] = {
     "joint_pos": JointPositionActionCfg(
       entity_name="robot",
       actuator_names=(".*",),
-      scale=T1_ACTION_SCALE,
+      scale=E1_ACTION_SCALE,
       use_default_offset=True,
     ),
   }
 
-  # 命令配置
   commands: dict[str, CommandTermCfg] = {
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
@@ -192,9 +172,7 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 事件配置
   events = {
-    # 重置机器人基座位置和姿态
     "reset_base": EventTermCfg(
       func=envs_mdp.reset_root_state_uniform,
       mode="reset",
@@ -208,7 +186,6 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
         "velocity_range": {},
       },
     ),
-    # 重置机器人关节位置和速度
     "reset_robot_joints": EventTermCfg(
       func=envs_mdp.reset_joints_by_offset,
       mode="reset",
@@ -220,57 +197,27 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 脚部身体名称
-  foot_bodies = ("left_foot_link", "right_foot_link")
+  # ================= 脚底所在的实体连杆名称 =================
+  foot_bodies = ("left_ankle_roll_link", "right_ankle_roll_link")
 
-  # 奖励配置
   rewards = {
-    # ============ 任务相关奖励 ============
-    # 线速度跟踪奖励
     "track_lin_vel_xy": RewardTermCfg(
-      func=mdp.track_lin_vel_xy_exp,
-      weight=1.25,
+      func=mdp.track_lin_vel_xy_exp, weight=1.25,
       params={"command_name": "twist", "std": math.sqrt(0.25)},
     ),
-    # 角速度跟踪奖励
     "track_ang_vel_z": RewardTermCfg(
-      func=mdp.track_ang_vel_z_exp,
-      weight=1.25,
+      func=mdp.track_ang_vel_z_exp, weight=1.25,
       params={"command_name": "twist", "std": math.sqrt(0.25)},
     ),
-    # 机器人活跃奖励
     "is_alive": RewardTermCfg(func=mdp.is_alive, weight=0.15),
-
-    # ============ 基座惩罚 ============
-    # 基座 XY 平面角速度惩罚
     "ang_vel_xy_l2": RewardTermCfg(func=mdp.ang_vel_xy_l2, weight=-0.1),
-    # 平坦身体姿态惩罚
-    "flat_orientation_l2": RewardTermCfg(
-      func=mdp.flat_orientation_l2,
-      weight=-1.0,
-    ),
-
-    # ============ 关节惩罚 ============
-    # 关节速度惩罚
+    "flat_orientation_l2": RewardTermCfg(func=mdp.flat_orientation_l2, weight=-1.0),
     "joint_vel_l2": RewardTermCfg(func=mdp.joint_vel_l2, weight=-2e-4),
-    # 关节加速度惩罚
     "joint_acc_l2": RewardTermCfg(func=mdp.joint_acc_l2, weight=-2.5e-7),
-    # 动作变化率惩罚
     "action_rate_l2": RewardTermCfg(func=mdp.action_rate_l2, weight=-0.01),
-    # 关节位置限制惩罚
-    "joint_pos_limits": RewardTermCfg(
-      func=joint_pos_limits,
-      weight=-1.0,
-    ),
-    # 关节能量惩罚
+    "joint_pos_limits": RewardTermCfg(func=joint_pos_limits, weight=-1.0),
     "joint_energy": RewardTermCfg(func=mdp.joint_energy, weight=-1e-4),
-    # 关节扭矩惩罚
-    "joint_torques_l2": RewardTermCfg(
-      func=mdp.joint_torques_l2, weight=-1e-5
-    ),
-
-    # ============ 脚部惩罚 ============
-    # 脚部滑动惩罚
+    "joint_torques_l2": RewardTermCfg(func=mdp.joint_torques_l2, weight=-1e-5),
     "feet_slide": RewardTermCfg(
       func=mdp.feet_slide,
       weight=-0.1,
@@ -279,41 +226,25 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
         "asset_cfg": SceneEntityCfg("robot", body_names=foot_bodies),
       },
     ),
-    # 柔和着陆奖励
     "soft_landing": RewardTermCfg(
-      func=mdp.soft_landing,
-      weight=-5e-5,
-      params={"sensor_name": feet_ground_cfg.name},
+      func=mdp.soft_landing, weight=-5e-5, params={"sensor_name": feet_ground_cfg.name},
     ),
-
-    # ============ 接触惩罚 ============
-    # 不期望的接触惩罚
     "undesired_contacts": RewardTermCfg(
       func=mdp.undesired_contacts,
       weight=-10.0,
-      params={
-        "sensor_name": nonfoot_ground_cfg.name,
-        "force_threshold": 1.0,
-      },
+      params={"sensor_name": nonfoot_ground_cfg.name, "force_threshold": 1.0},
     ),
   }
 
-  # 终止条件配置
   terminations = {
-    # 超时终止
     "time_out": TerminationTermCfg(func=envs_mdp.time_out, time_out=True),
-    # 摔倒终止
     "fell_over": TerminationTermCfg(
       func=envs_mdp.bad_orientation,
       params={"limit_angle": math.radians(70.0)},
     ),
-    # 非法接触终止
     "illegal_contact": TerminationTermCfg(
       func=mdp.illegal_contact,
-      params={
-        "sensor_name": nonfoot_ground_cfg.name,
-        "force_threshold": 10.0,
-      },
+      params={"sensor_name": nonfoot_ground_cfg.name, "force_threshold": 10.0},
     ),
   }
 
@@ -323,29 +254,16 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       motion_data_dir=MOTION_DATA_DIR,
       motion_data_weights={
         "female_walk1": 1.0,
-        "female_stand_to_walk": 1.0,
-        "female_walk_to_stand": 1.0,
-        "female_walk_backwards": 1.0,
-        "female_walk_turn_left_45": 1.0,
-        "female_walk_turn_left_90": 1.0,
-        "female_walk_turn_right_45": 1.0,
-        "female_walk_turn_right_90": 1.0,
       },
     )
   }
 
-  # 动画配置
   animation = {
     ANIMATION_TERM_NAME: AnimationTermCfg(
       motion_data_term=MOTION_DATA_TERM_NAME,
       motion_data_components=[
-        "root_pos_w",
-        "root_quat",
-        "root_vel_w",
-        "root_ang_vel_w",
-        "dof_pos",
-        "dof_vel",
-        "key_body_pos_b",
+        "root_pos_w", "root_quat", "root_vel_w", "root_ang_vel_w",
+        "dof_pos", "dof_vel", "key_body_pos_b",
       ],
       num_steps_to_use=AMP_NUM_STEPS,
       random_initialize=True,
@@ -353,7 +271,6 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     )
   }
 
-  # 创建完整的环境配置
   cfg = AmpEnvCfg(
     scene=SceneCfg(
       terrain=TerrainEntityCfg(terrain_type="plane"),
@@ -374,7 +291,7 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     viewer=ViewerConfig(
       origin_type=ViewerConfig.OriginType.ASSET_BODY,
       entity_name="robot",
-      body_name="Trunk",
+      body_name="pelvis",
       distance=2.0,
       elevation=-10.0,
       azimuth=90.0,
@@ -394,19 +311,13 @@ def t1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     episode_length_s=20.0,
   )
 
-  # 为机器人设置实体配置
-  cfg.scene.entities = {"robot": get_t1_robot_cfg(play=play)}
+  cfg.scene.entities = {"robot": get_e1_robot_cfg(play=play)}
 
-  # 播放模式设置
   if play:
-    # 设置无限长的运行时间
     cfg.episode_length_s = int(1e9)
-    # 禁用观测噪声
     cfg.observations["actor"].enable_corruption = False
-    # 移除推动机器人事件
     cfg.events.pop("push_robot", None)
     cfg.curriculum = {}
-    # 调整速度命令范围为固定前向速度
     twist_cmd = cfg.commands["twist"]
     assert isinstance(twist_cmd, UniformVelocityCommandCfg)
     twist_cmd.ranges = UniformVelocityCommandCfg.Ranges(

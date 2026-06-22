@@ -1,4 +1,4 @@
-"""AMP environment extending ManagerBasedRlEnv."""
+"""扩展ManagerBasedRlEnv的AMP(动作匹配运动)环境。"""
 
 from __future__ import annotations
 
@@ -18,17 +18,17 @@ from mjlab.utils.logging import print_info
 
 @dataclass(kw_only=True)
 class AmpEnvCfg(ManagerBasedRlEnvCfg):
-  """Configuration for an AMP environment."""
+  """AMP环境的配置。"""
 
   motion_data: dict[str, MotionDataTermCfg] = field(default_factory=dict)
-  """Motion data term configurations (dataset name → cfg)."""
+  """运动数据项配置 (数据集名称 → 配置)。"""
 
   animation: dict[str, AnimationTermCfg] = field(default_factory=dict)
-  """Animation term configurations (term name → cfg)."""
+  """动画项配置 (项名称 → 配置)。"""
 
 
 class AmpEnv(ManagerBasedRlEnv):
-  """ManagerBasedRlEnv with motion data and animation managers for AMP."""
+  """具有运动数据和动画管理器的ManagerBasedRlEnv，用于AMP任务。"""
 
   cfg: AmpEnvCfg
 
@@ -42,8 +42,8 @@ class AmpEnv(ManagerBasedRlEnv):
     super().__init__(cfg, device, render_mode, **kwargs)
 
   def load_managers(self) -> None:
-    # Motion data and animation managers must be ready before observations
-    # (observation terms may reference animation data).
+    # 运动数据和动画管理器必须在观测之前准备好
+    # (观测项可能引用动画数据)。
     self.motion_data_manager = MotionDataManager(
       self.cfg.motion_data, self.num_envs, self.device
     )
@@ -51,7 +51,7 @@ class AmpEnv(ManagerBasedRlEnv):
     self.animation_manager = AnimationManager(self.cfg.animation, self)
     print_info(f"[INFO] AnimationManager: {self.animation_manager.active_terms}")
 
-    # Now load standard managers (events, commands, actions, obs, …).
+    # 现在加载标准管理器 (事件、命令、动作、观测等)。
     super().load_managers()
 
   def step(self, action: torch.Tensor):
@@ -64,27 +64,27 @@ class AmpEnv(ManagerBasedRlEnv):
       self.sim.step()
       self.scene.update(dt=self.physics_dt)
 
-    # Update animation references for the new timestep.
+    # 更新新时间步的动画参考。
     self.animation_manager.update(dt=self.step_dt)
 
-    # Env counters.
+    # 环境计数器。
     self.episode_length_buf += 1
     self.common_step_counter += 1
 
-    # Terminations and rewards.
+    # 终止条件和奖励。
     self.reset_buf = self.termination_manager.compute()
     self.reset_terminated = self.termination_manager.terminated
     self.reset_time_outs = self.termination_manager.time_outs
     self.reward_buf = self.reward_manager.compute(dt=self.step_dt)
     self.metrics_manager.compute()
 
-    # Reset terminated envs.
+    # 重置已终止的环境。
     reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
     if len(reset_env_ids) > 0:
       self._reset_idx(reset_env_ids)
       self.scene.write_data_to_sim()
 
-    # Forward kinematics for all envs.
+    # 所有环境的正向运动学。
     self.sim.forward()
 
     self.command_manager.compute(dt=self.step_dt)
@@ -106,8 +106,8 @@ class AmpEnv(ManagerBasedRlEnv):
     )
 
   def _reset_idx(self, env_ids: torch.Tensor | None = None) -> None:
-    # Reset animation manager before standard reset so that when observation
-    # manager resets its history, it picks up fresh reference data.
+    # 在标准重置之前重置动画管理器，这样当观测管理器重置其历史时，
+    # 它会拾取新的参考数据。
     if env_ids is not None:
       self.animation_manager.reset(env_ids)
     super()._reset_idx(env_ids)

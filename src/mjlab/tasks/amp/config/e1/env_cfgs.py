@@ -1,6 +1,6 @@
 """Booster E1 AMP 环境配置文件。
 
-该模块定义了 E1 人形机器人的 AMP（Adversarial Motion Priors）环境配置，
+该模块定义了E1人形机器人的AMP（Adversarial Motion Priors）环境配置，
 包括观测、动作、命令、奖励、终止条件等。
 """
 
@@ -33,38 +33,43 @@ from mjlab.tasks.velocity.mdp import UniformVelocityCommandCfg
 from mjlab.terrains import TerrainEntityCfg
 from mjlab.viewer import ViewerConfig
 
-# 运动数据目录路径
+# 运动数据目录路径 (修改为 E1 的路径)
 MOTION_DATA_DIR = str(
   Path(__file__).resolve().parent.parent.parent / "data" / "e1_motions"
 )
 
+# AMP 模型使用的历史步数
 AMP_NUM_STEPS = 3
+# 动画项的名称
 ANIMATION_TERM_NAME = "e1_anim"
+# 运动数据项的名称
 MOTION_DATA_TERM_NAME = "e1_motion"
 
 
 def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
   """为 Booster E1 创建 AMP 环境配置。"""
 
-  foot_geoms = ("l_foot_collision", "r_foot_collision")
+  # E1 的脚部连杆（那 4 个小球附着的地方）
+  foot_bodies = ("left_ankle_roll_link", "right_ankle_roll_link")
 
+  # 脚部与地面接触传感器配置 (改用 mode="body")
   feet_ground_cfg = ContactSensorCfg(
     name="feet_ground_contact",
-    primary=ContactMatch(mode="geom", pattern=foot_geoms, entity="robot"),
+    primary=ContactMatch(mode="body", pattern=foot_bodies, entity="robot"),
     secondary=ContactMatch(mode="body", pattern="terrain"),
     fields=("found", "force"),
     reduce="netforce",
     num_slots=1,
     track_air_time=True,
   )
-
+  # 非脚部与地面接触传感器配置 (改用 mode="body" 并排除脚部)
   nonfoot_ground_cfg = ContactSensorCfg(
     name="nonfoot_ground_touch",
     primary=ContactMatch(
-      mode="geom",
+      mode="body",
       entity="robot",
-      pattern=r".*_collision$",
-      exclude=foot_geoms,
+      pattern=".*",
+      exclude=foot_bodies,
     ),
     secondary=ContactMatch(mode="body", pattern="terrain"),
     fields=("found", "force"),
@@ -73,6 +78,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     history_length=4,
   )
 
+  # 演员网络观测项（用于策略网络）
   actor_terms = {
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
     "projected_gravity": ObservationTermCfg(func=envs_mdp.projected_gravity),
@@ -85,6 +91,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "actions": ObservationTermCfg(func=envs_mdp.last_action),
   }
 
+  # 评论家网络观测项（用于价值网络）
   critic_terms = {
     "base_lin_vel": ObservationTermCfg(func=envs_mdp.base_lin_vel),
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
@@ -98,12 +105,14 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "actions": ObservationTermCfg(func=envs_mdp.last_action),
   }
 
+  # 判别器网络观测项（用于动作判别）
   disc_terms = {
     "base_ang_vel": ObservationTermCfg(func=envs_mdp.base_ang_vel),
     "joint_pos": ObservationTermCfg(func=envs_mdp.joint_pos),
     "joint_vel": ObservationTermCfg(func=envs_mdp.joint_vel),
   }
 
+  # 判别器演示观测项（参考动作数据）
   disc_demo_terms = {
     "ref_root_ang_vel_b": ObservationTermCfg(
       func=mdp.ref_root_ang_vel_b,
@@ -121,31 +130,22 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
 
   observations = {
     "actor": ObservationGroupCfg(
-      terms=actor_terms,
-      concatenate_terms=True,
-      enable_corruption=True,
+      terms=actor_terms, concatenate_terms=True, enable_corruption=True,
     ),
     "critic": ObservationGroupCfg(
-      terms=critic_terms,
-      concatenate_terms=True,
-      enable_corruption=False,
+      terms=critic_terms, concatenate_terms=True, enable_corruption=False,
     ),
     "disc": ObservationGroupCfg(
-      terms=disc_terms,
-      concatenate_terms=True,
-      concatenate_dim=-1,
-      enable_corruption=False,
-      history_length=AMP_NUM_STEPS,
-      flatten_history_dim=False,
+      terms=disc_terms, concatenate_terms=True, concatenate_dim=-1,
+      enable_corruption=False, history_length=AMP_NUM_STEPS, flatten_history_dim=False,
     ),
     "disc_demo": ObservationGroupCfg(
-      terms=disc_demo_terms,
-      concatenate_terms=True,
-      concatenate_dim=-1,
+      terms=disc_demo_terms, concatenate_terms=True, concatenate_dim=-1,
       enable_corruption=False,
     ),
   }
 
+  # 动作配置 (对齐 E1_ACTION_SCALE)
   actions: dict[str, ActionTermCfg] = {
     "joint_pos": JointPositionActionCfg(
       entity_name="robot",
@@ -155,6 +155,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
+  # 命令配置 (完全对齐 T1)
   commands: dict[str, CommandTermCfg] = {
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
@@ -178,10 +179,8 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       mode="reset",
       params={
         "pose_range": {
-          "x": (-0.5, 0.5),
-          "y": (-0.5, 0.5),
-          "z": (0.01, 0.05),
-          "yaw": (-3.14, 3.14),
+          "x": (-0.5, 0.5), "y": (-0.5, 0.5),
+          "z": (0.01, 0.05), "yaw": (-3.14, 3.14),
         },
         "velocity_range": {},
       },
@@ -197,9 +196,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # ================= 脚底所在的实体连杆名称 =================
-  foot_bodies = ("left_ankle_roll_link", "right_ankle_roll_link")
-
+  # 奖励配置 (完全恢复 T1 的原版权重)
   rewards = {
     "track_lin_vel_xy": RewardTermCfg(
       func=mdp.track_lin_vel_xy_exp, weight=1.25,
@@ -209,7 +206,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       func=mdp.track_ang_vel_z_exp, weight=1.25,
       params={"command_name": "twist", "std": math.sqrt(0.25)},
     ),
-    "is_alive": RewardTermCfg(func=mdp.is_alive, weight=0.25),
+    "is_alive": RewardTermCfg(func=mdp.is_alive, weight=0.15),
     "ang_vel_xy_l2": RewardTermCfg(func=mdp.ang_vel_xy_l2, weight=-0.1),
     "flat_orientation_l2": RewardTermCfg(func=mdp.flat_orientation_l2, weight=-1.0),
     "joint_vel_l2": RewardTermCfg(func=mdp.joint_vel_l2, weight=-2e-4),
@@ -219,8 +216,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "joint_energy": RewardTermCfg(func=mdp.joint_energy, weight=-1e-4),
     "joint_torques_l2": RewardTermCfg(func=mdp.joint_torques_l2, weight=-1e-5),
     "feet_slide": RewardTermCfg(
-      func=mdp.feet_slide,
-      weight=-0.1,
+      func=mdp.feet_slide, weight=-0.1,
       params={
         "sensor_name": feet_ground_cfg.name,
         "asset_cfg": SceneEntityCfg("robot", body_names=foot_bodies),
@@ -230,17 +226,16 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       func=mdp.soft_landing, weight=-5e-5, params={"sensor_name": feet_ground_cfg.name},
     ),
     "undesired_contacts": RewardTermCfg(
-      func=mdp.undesired_contacts,
-      weight=-10.0,
+      func=mdp.undesired_contacts, weight=-10.0,
       params={"sensor_name": nonfoot_ground_cfg.name, "force_threshold": 1.0},
     ),
   }
 
+  # 终止条件配置 (完全恢复 T1 的秒杀机制)
   terminations = {
     "time_out": TerminationTermCfg(func=envs_mdp.time_out, time_out=True),
     "fell_over": TerminationTermCfg(
-      func=envs_mdp.bad_orientation,
-      params={"limit_angle": math.radians(70.0)},
+      func=envs_mdp.bad_orientation, params={"limit_angle": math.radians(70.0)},
     ),
     "illegal_contact": TerminationTermCfg(
       func=mdp.illegal_contact,
@@ -248,7 +243,6 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 运动数据配置
   motion_data = {
     MOTION_DATA_TERM_NAME: MotionDataTermCfg(
       motion_data_dir=MOTION_DATA_DIR,
@@ -298,7 +292,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     viewer=ViewerConfig(
       origin_type=ViewerConfig.OriginType.ASSET_BODY,
       entity_name="robot",
-      body_name="pelvis",
+      body_name="pelvis",  # E1 的基座是 pelvis
       distance=2.0,
       elevation=-10.0,
       azimuth=90.0,

@@ -1,4 +1,4 @@
-"""An ideal PD control actuator."""
+"""理想PD控制执行器。"""
 
 from __future__ import annotations
 
@@ -20,14 +20,14 @@ IdealPdCfgT = TypeVar("IdealPdCfgT", bound="IdealPdActuatorCfg")
 
 @dataclass(kw_only=True)
 class IdealPdActuatorCfg(ActuatorCfg):
-  """Configuration for ideal PD actuator."""
+  """理想PD执行器配置。"""
 
   stiffness: float
-  """PD stiffness (proportional gain)."""
+  """PD刚度（比例增益）。"""
   damping: float
-  """PD damping (derivative gain)."""
+  """PD阻尼（微分增益）。"""
   effort_limit: float = float("inf")
-  """Maximum force/torque limit."""
+  """最大力/转矩限制。"""
 
   def build(
     self, entity: Entity, target_ids: list[int], target_names: list[str]
@@ -36,7 +36,7 @@ class IdealPdActuatorCfg(ActuatorCfg):
 
 
 class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
-  """Ideal PD control actuator."""
+  """理想PD控制执行器。"""
 
   def __init__(
     self,
@@ -54,7 +54,7 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
     self.default_force_limit: torch.Tensor | None = None
 
   def edit_spec(self, spec: mujoco.MjSpec, target_names: list[str]) -> None:
-    # Add <motor> actuator to spec, one per target.
+    # 为每个目标添加一个<motor>执行器。
     for target_name in target_names:
       actuator = create_motor_actuator(
         spec,
@@ -87,6 +87,7 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
       (num_envs, num_joints), self.cfg.effort_limit, dtype=torch.float, device=device
     )
 
+    # 保存默认值以便后续恢复。
     self.default_stiffness = self.stiffness.clone()
     self.default_damping = self.damping.clone()
     self.default_force_limit = self.force_limit.clone()
@@ -95,9 +96,11 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
     assert self.stiffness is not None
     assert self.damping is not None
 
+    # 计算位置和速度误差。
     pos_error = cmd.position_target - cmd.pos
     vel_error = cmd.velocity_target - cmd.vel
 
+    # PD控制：刚度 * 位置误差 + 阻尼 * 速度误差 + 目标力矩。
     computed_torques = self.stiffness * pos_error
     computed_torques += self.damping * vel_error
     computed_torques += cmd.effort_target
@@ -105,6 +108,7 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
     return self._clip_effort(computed_torques)
 
   def _clip_effort(self, effort: torch.Tensor) -> torch.Tensor:
+    # 将转矩限制在允许范围内。
     assert self.force_limit is not None
     return torch.clamp(effort, -self.force_limit, self.force_limit)
 
@@ -114,12 +118,12 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
     kp: torch.Tensor | None = None,
     kd: torch.Tensor | None = None,
   ) -> None:
-    """Set PD gains for specified environments.
+    """为指定的环境设置PD增益。
 
-    Args:
-      env_ids: Environment indices to update.
-      kp: New proportional gains. Shape: (num_envs, num_actuators) or (num_envs,).
-      kd: New derivative gains. Shape: (num_envs, num_actuators) or (num_envs,).
+    参数：
+      env_ids: 要更新的环境索引。
+      kp: 新的比例增益。形状：(num_envs, num_actuators) 或 (num_envs,)。
+      kd: 新的微分增益。形状：(num_envs, num_actuators) 或 (num_envs,)。
     """
     assert self.stiffness is not None
     assert self.damping is not None
@@ -137,11 +141,11 @@ class IdealPdActuator(Actuator, Generic[IdealPdCfgT]):
   def set_effort_limit(
     self, env_ids: torch.Tensor | slice, effort_limit: torch.Tensor
   ) -> None:
-    """Set effort limits for specified environments.
+    """为指定的环境设置力/转矩限制。
 
-    Args:
-      env_ids: Environment indices to update.
-      effort_limit: New effort limits. Shape: (num_envs, num_actuators) or (num_envs,).
+    参数：
+      env_ids: 要更新的环境索引。
+      effort_limit: 新的力/转矩限制。形状：(num_envs, num_actuators) 或 (num_envs,)。
     """
     assert self.force_limit is not None
 

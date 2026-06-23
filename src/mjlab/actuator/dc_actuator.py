@@ -1,7 +1,6 @@
-"""DC motor actuator with velocity-based saturation model.
+"""直流电机执行器，具有基于速度的饱和模型。
 
-This module provides a DC motor actuator that implements a realistic torque-speed
-curve for more accurate motor behavior simulation.
+该模块提供了一个直流电机执行器，实现了现实的转矩-速度曲线，用于更准确的电机行为模拟。
 """
 
 from __future__ import annotations
@@ -24,42 +23,39 @@ DcMotorCfgT = TypeVar("DcMotorCfgT", bound="DcMotorActuatorCfg")
 
 @dataclass(kw_only=True)
 class DcMotorActuatorCfg(IdealPdActuatorCfg):
-  """Configuration for DC motor actuator with velocity-based saturation.
+  """基于速度的饱和直流电机执行器配置。
 
-  This actuator implements a DC motor torque-speed curve for more realistic
-  actuator behavior. The motor produces maximum torque (saturation_effort) at
-  zero velocity and reduces linearly to zero torque at maximum velocity.
+  该执行器实现了直流电机转矩-速度曲线，提供更逼真的执行器行为。
+  电机在零速度时产生最大转矩（saturation_effort），并随着速度增加线性降低，
+  在最大速度时转矩降为零。
 
-  Note: effort_limit should be explicitly set to a realistic value for proper
-  motor modeling. Using the default (inf) will trigger a warning. Use
-  IdealPdActuator if unlimited torque is desired.
+  注意：effort_limit应显式设置为现实值以进行适当的电机建模。
+  使用默认值（inf）将触发警告。如果需要无限转矩，请使用 IdealPdActuator。
   """
 
   saturation_effort: float
-  """Peak motor torque at zero velocity (stall torque)."""
+  """零速度时的峰值电机转矩（堵转转矩）。"""
 
   velocity_limit: float
-  """Maximum motor velocity (no-load speed)."""
+  """最大电机速度（空载速度）。"""
 
   def __post_init__(self) -> None:
-    """Validate DC motor parameters."""
+    """验证直流电机参数。"""
     import warnings
 
     if self.effort_limit == float("inf"):
       warnings.warn(
-        "effort_limit is set to inf for DcMotorActuator, which creates an "
-        "unrealistic motor with unlimited continuous torque. Consider setting "
-        "effort_limit to your motor's continuous rating (<= saturation_effort). "
-        "Use IdealPdActuator if you truly want unlimited torque.",
+        "DcMotorActuator 的 effort_limit 设置为 inf，这会创建一个不现实的、"
+        "具有无限连续转矩的电机。考虑将 effort_limit 设置为电机的连续额定值"
+        "(<= saturation_effort)。如果真的需要无限转矩，请使用 IdealPdActuator。",
         UserWarning,
         stacklevel=2,
       )
 
     if self.effort_limit > self.saturation_effort:
       warnings.warn(
-        f"effort_limit ({self.effort_limit}) exceeds saturation_effort "
-        f"({self.saturation_effort}). For realistic motors, continuous torque "
-        "should be <= peak torque.",
+        f"effort_limit ({self.effort_limit}) 超过了 saturation_effort "
+        f"({self.saturation_effort})。对于现实电机，连续转矩应 <= 峰值转矩。",
         UserWarning,
         stacklevel=2,
       )
@@ -71,16 +67,15 @@ class DcMotorActuatorCfg(IdealPdActuatorCfg):
 
 
 class DcMotorActuator(IdealPdActuator[DcMotorCfgT], Generic[DcMotorCfgT]):
-  """DC motor actuator with velocity-based saturation model.
+  """基于速度的饱和模型的直流电机执行器。
 
-  This actuator extends IdealPdActuator with a realistic DC motor model
-  that limits torque based on current joint velocity. The model implements
-  a linear torque-speed curve where:
-  - At zero velocity: can produce full saturation_effort (stall torque)
-  - At max velocity: can produce zero torque
-  - Between: torque limit varies linearly
+  该执行器扩展了 IdealPdActuator，实现了现实的直流电机模型，
+  根据当前关节速度限制转矩。该模型实现了线性转矩-速度曲线：
+  - 零速度时：能产生最大饱和转矩（stall torque）
+  - 最大速度时：转矩为零
+  - 中间：转矩限制线性变化
 
-  The continuous torque limit (effort_limit) further constrains the output.
+  连续转矩限制（effort_limit）进一步约束输出。
   """
 
   def __init__(
@@ -121,7 +116,7 @@ class DcMotorActuator(IdealPdActuator[DcMotorCfgT], Generic[DcMotorCfgT]):
       device=device,
     )
 
-    # Compute corner velocity where torque-speed curve intersects effort_limit.
+    # 计算转矩-速度曲线与 effort_limit 的交点速度。
     assert self.force_limit is not None
     self._vel_at_effort_lim = self.velocity_limit_motor * (
       1 + self.force_limit / self.saturation_effort
@@ -129,6 +124,7 @@ class DcMotorActuator(IdealPdActuator[DcMotorCfgT], Generic[DcMotorCfgT]):
     self._joint_vel_clipped = torch.zeros(num_envs, num_joints, device=device)
 
   def compute(self, cmd: ActuatorCmd) -> torch.Tensor:
+    # 记录当前关节速度用于转矩限制计算。
     assert self._joint_vel_clipped is not None
     self._joint_vel_clipped[:] = cmd.vel
     return super().compute(cmd)
@@ -140,14 +136,14 @@ class DcMotorActuator(IdealPdActuator[DcMotorCfgT], Generic[DcMotorCfgT]):
     assert self._vel_at_effort_lim is not None
     assert self._joint_vel_clipped is not None
 
-    # Clip velocity to corner velocity range.
+    # 将速度裁剪到转矩限制角速度范围内。
     vel_clipped = torch.clamp(
       self._joint_vel_clipped,
       min=-self._vel_at_effort_lim,
       max=self._vel_at_effort_lim,
     )
 
-    # Compute torque-speed curve limits.
+    # 计算转矩-速度曲线限制。
     torque_speed_top = self.saturation_effort * (
       1.0 - vel_clipped / self.velocity_limit_motor
     )
@@ -155,7 +151,7 @@ class DcMotorActuator(IdealPdActuator[DcMotorCfgT], Generic[DcMotorCfgT]):
       -1.0 - vel_clipped / self.velocity_limit_motor
     )
 
-    # Apply continuous torque constraint.
+    # 应用连续转矩约束。
     max_effort = torch.clamp(torque_speed_top, max=self.force_limit)
     min_effort = torch.clamp(torque_speed_bottom, min=-self.force_limit)
 

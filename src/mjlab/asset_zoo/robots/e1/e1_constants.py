@@ -18,90 +18,93 @@ _E1_DIR: Path = (
 )
 
 E1_XML: Path = _E1_DIR / "xmls" / "E1_25dof.xml"
-E1_TRAIN_XML: Path = _E1_DIR / "xmls" / "E1_25dof_train.xml"
+E1_TRAIN_XML: Path = _E1_DIR / "xmls" / "E1_25dof.xml"
 assert E1_XML.exists(), f"E1 XML not found: {E1_XML}"
-assert E1_TRAIN_XML.exists(), f"E1 train XML not found: {E1_TRAIN_XML}"
+
 
 def get_assets(meshdir: str) -> dict[str, bytes]:
   assets: dict[str, bytes] = {}
   update_assets(assets, _E1_DIR / "meshes", meshdir)
   return assets
 
+
 def get_spec() -> mujoco.MjSpec:
   spec = mujoco.MjSpec.from_file(str(E1_XML))
   spec.assets = get_assets(spec.meshdir)
   return spec
 
+
 def get_spec_train() -> mujoco.MjSpec:
   return mujoco.MjSpec.from_file(str(E1_TRAIN_XML))
 
+
 # ============================================================================
-# 执行器配置 (Actuator Configs) - 替换为 DcMotorActuatorCfg
+# 执行器配置
 # ============================================================================
-E1_ACT_WAIST = DcMotorActuatorCfg(
+E1_ACTUATOR_WAIST = DcMotorActuatorCfg(
   target_names_expr=("waist_yaw_joint",),
   stiffness=200.0, damping=5.0, effort_limit=60.0,
-  saturation_effort=60.0, velocity_limit=13.0, armature=0.01,
+  saturation_effort=60.0, velocity_limit=12.0, armature=0.01,
 )
 
-E1_ACT_PITCH = DcMotorActuatorCfg(
+E1_ACTUATOR_PITCH = DcMotorActuatorCfg(
   target_names_expr=(".*_hip_pitch_joint",),
   stiffness=150.0, damping=5.0, effort_limit=120.0,
   saturation_effort=120.0, velocity_limit=12.0, armature=0.01,
 )
 
-E1_ACT_ROLL = DcMotorActuatorCfg(
+E1_ACTUATOR_ROLL = DcMotorActuatorCfg(
   target_names_expr=(".*_hip_roll_joint",),
   stiffness=100.0, damping=3.0, effort_limit=60.0,
-  saturation_effort=60.0, velocity_limit=13.0, armature=0.01,
+  saturation_effort=60.0, velocity_limit=12.0, armature=0.01,
 )
 
-E1_ACT_YAW = DcMotorActuatorCfg(
+E1_ACTUATOR_YAW = DcMotorActuatorCfg(
   target_names_expr=(".*_hip_yaw_joint",),
   stiffness=100.0, damping=3.0, effort_limit=36.0,
-  saturation_effort=36.0, velocity_limit=13.0, armature=0.01,
+  saturation_effort=36.0, velocity_limit=12.0, armature=0.01,
 )
 
-E1_ACT_KNEE = DcMotorActuatorCfg(
+E1_ACTUATOR_KNEE = DcMotorActuatorCfg(
   target_names_expr=(".*_knee_joint",),
   stiffness=150.0, damping=5.0, effort_limit=120.0,
   saturation_effort=120.0, velocity_limit=12.0, armature=0.01,
 )
 
-E1_ACT_ANKLE = DcMotorActuatorCfg(
+E1_ACTUATOR_ANKLE = DcMotorActuatorCfg(
   target_names_expr=(".*_ankle_pitch_joint", ".*_ankle_roll_joint",),
   stiffness=30.0, damping=2.0, effort_limit=30.0,
-  saturation_effort=30.0, velocity_limit=15.0, armature=0.01,
+  saturation_effort=30.0, velocity_limit=16.0, armature=0.01,
 )
 
-E1_ACT_SHOULDER_PITCH_ELBOW = DcMotorActuatorCfg(
+E1_ACTUATOR_SHOULDER_PITCH_ELBOW = DcMotorActuatorCfg(
   target_names_expr=(".*_shoulder_pitch_joint", ".*_elbow_joint",),
   stiffness=40.0, damping=2.0, effort_limit=60.0,
-  saturation_effort=60.0, velocity_limit=13.0, armature=0.01,
+  saturation_effort=60.0, velocity_limit=14.0, armature=0.01,
 )
 
-E1_ACT_SHOULDER_ROLL = DcMotorActuatorCfg(
+E1_ACTUATOR_SHOULDER_ROLL = DcMotorActuatorCfg(
   target_names_expr=(".*_shoulder_roll_joint",),
   stiffness=40.0, damping=2.0, effort_limit=36.0,
-  saturation_effort=36.0, velocity_limit=13.0, armature=0.01,
+  saturation_effort=36.0, velocity_limit=14.0, armature=0.01,
 )
 
-E1_ACT_SHOULDER_YAW = DcMotorActuatorCfg(
+E1_ACTUATOR_SHOULDER_YAW = DcMotorActuatorCfg(
   target_names_expr=(".*_shoulder_yaw_joint",),
   stiffness=30.0, damping=2.0, effort_limit=15.0,
-  saturation_effort=15.0, velocity_limit=15.0, armature=0.01,
+  saturation_effort=15.0, velocity_limit=14.0, armature=0.01,
 )
 
-E1_ACT_WRIST_ROLL = DcMotorActuatorCfg(
+E1_ACTUATOR_WRIST_ROLL = DcMotorActuatorCfg(
   target_names_expr=(".*_wrist_roll_joint",),
   stiffness=20.0, damping=0.5, effort_limit=15.0,
-  saturation_effort=15.0, velocity_limit=12.0, armature=0.01,
+  saturation_effort=15.0, velocity_limit=16.0, armature=0.01,
 )
 
-E1_ACT_WRIST_PITCH = DcMotorActuatorCfg(
+E1_ACTUATOR_WRIST_PITCH = DcMotorActuatorCfg(
   target_names_expr=(".*_wrist_pitch_joint",),
   stiffness=10.0, damping=0.5, effort_limit=6.0,
-  saturation_effort=6.0, velocity_limit=12.0, armature=0.01,
+  saturation_effort=6.0, velocity_limit=16.0, armature=0.01,
 )
 
 # ============================================================================
@@ -147,26 +150,24 @@ E1_INIT_STATE = EntityCfg.InitialStateCfg(
 # 碰撞配置
 # ============================================================================
 FULL_COLLISION = CollisionCfg(
-  geom_names_expr=(".*_collision",),
-  condim={r"^[lr]_foot_collision$": 3, ".*_collision": 1},
-  priority={r"^[lr]_foot_collision$": 1},
-  friction={r"^[lr]_foot_collision$": (0.6,)},
+  geom_names_expr=(".*",),
+  condim={".*": 3},
 )
 
 # 机器人关节组装
 E1_ARTICULATION = EntityArticulationInfoCfg(
   actuators=(
-    E1_ACT_WAIST,
-    E1_ACT_PITCH,
-    E1_ACT_ROLL,
-    E1_ACT_YAW,
-    E1_ACT_KNEE,
-    E1_ACT_ANKLE,
-    E1_ACT_SHOULDER_PITCH_ELBOW,
-    E1_ACT_SHOULDER_ROLL,
-    E1_ACT_SHOULDER_YAW,
-    E1_ACT_WRIST_ROLL,
-    E1_ACT_WRIST_PITCH,
+    E1_ACTUATOR_WAIST,
+    E1_ACTUATOR_PITCH,
+    E1_ACTUATOR_ROLL,
+    E1_ACTUATOR_YAW,
+    E1_ACTUATOR_KNEE,
+    E1_ACTUATOR_ANKLE,
+    E1_ACTUATOR_SHOULDER_PITCH_ELBOW,
+    E1_ACTUATOR_SHOULDER_ROLL,
+    E1_ACTUATOR_SHOULDER_YAW,
+    E1_ACTUATOR_WRIST_ROLL,
+    E1_ACTUATOR_WRIST_PITCH,
   ),
   soft_joint_pos_limit_factor=0.9,
 )
@@ -188,4 +189,4 @@ for _a in E1_ARTICULATION.actuators:
   _names = _a.target_names_expr
   assert _e is not None
   for _n in _names:
-    E1_ACTION_SCALE[_n] = (_e / _s)
+    E1_ACTION_SCALE[_n] = _e / _s

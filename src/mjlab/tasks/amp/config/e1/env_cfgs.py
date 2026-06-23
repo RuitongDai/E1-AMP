@@ -209,7 +209,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       func=mdp.track_ang_vel_z_exp, weight=1.25,
       params={"command_name": "twist", "std": math.sqrt(0.25)},
     ),
-    "is_alive": RewardTermCfg(func=mdp.is_alive, weight=0.15),
+    "is_alive": RewardTermCfg(func=mdp.is_alive, weight=0.25),
     "ang_vel_xy_l2": RewardTermCfg(func=mdp.ang_vel_xy_l2, weight=-0.1),
     "flat_orientation_l2": RewardTermCfg(func=mdp.flat_orientation_l2, weight=-1.0),
     "joint_vel_l2": RewardTermCfg(func=mdp.joint_vel_l2, weight=-2e-4),

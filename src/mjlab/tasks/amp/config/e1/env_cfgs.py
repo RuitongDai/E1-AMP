@@ -254,6 +254,13 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       motion_data_dir=MOTION_DATA_DIR,
       motion_data_weights={
         "female_walk1": 1.0,
+        "female_stand_to_walk": 1.0,
+        "female_walk_to_stand": 1.0,
+        "female_walk_backwards": 1.0,
+        "female_walk_turn_left_45": 1.0,
+        "female_walk_turn_left_90": 1.0,
+        "female_walk_turn_right_45": 1.0,
+        "female_walk_turn_right_90": 1.0,
       },
     )
   }

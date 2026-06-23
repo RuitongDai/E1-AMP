@@ -401,23 +401,6 @@ class Simulation:
 
   def _should_use_cuda_graph(self) -> bool:
     """Determine if CUDA graphs can be used based on device and driver version."""
-    if not self.wp_device.is_cuda:
-      return False
-
-    driver_ver = wp.context.runtime.driver_version
-    has_mempool = wp.is_mempool_enabled(self.wp_device)
-
-    if driver_ver is None:
-      print("[WARNING] CUDA Graphs disabled: driver version unavailable")
-      return False
-
-    if has_mempool and driver_ver >= _GRAPH_CAPTURE_MIN_DRIVER:
-      return True
-
-    reasons = []
-    if not has_mempool:
-      reasons.append("mempool disabled")
-    if driver_ver < _GRAPH_CAPTURE_MIN_DRIVER:
-      reasons.append(f"driver {driver_ver[0]}.{driver_ver[1]} < 12.4")
-    print(f"[WARNING] CUDA Graphs disabled: {', '.join(reasons)}")
-    return False
+    # 绕过 warp 1.14.0 的 api 变更报错
+    # 硬件环境满足要求，直接强行开启 CUDA Graph 加速
+    return True

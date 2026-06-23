@@ -14,11 +14,11 @@ from mjlab.utils.os import update_assets
 from mjlab.utils.spec_config import CollisionCfg
 
 _E1_DIR: Path = (
-  MJLAB_SRC_PATH / "asset_zoo" / "robots" / "booster_e1"
+  MJLAB_SRC_PATH / "asset_zoo" / "robots" / "e1"
 )
 
-E1_XML: Path = _E1_DIR / "xmls" / "booster_e1.xml"
-E1_TRAIN_XML: Path = _E1_DIR / "xmls" / "booster_e1_train.xml"
+E1_XML: Path = _E1_DIR / "xmls" / "E1_25dof.xml"
+E1_TRAIN_XML: Path = _E1_DIR / "xmls" / "E1_25dof_train.xml"
 assert E1_XML.exists(), f"E1 XML not found: {E1_XML}"
 assert E1_TRAIN_XML.exists(), f"E1 train XML not found: {E1_TRAIN_XML}"
 
@@ -38,15 +38,6 @@ def get_spec_train() -> mujoco.MjSpec:
 # ============================================================================
 # 执行器配置 (Actuator Configs) - 使用 BuiltinPositionActuatorCfg
 # ============================================================================
-
-E1_ACTUATOR_HEAD = BuiltinPositionActuatorCfg(
-  target_names_expr=(r"head_.*_joint",),
-  stiffness=20.0,
-  damping=1.5,
-  effort_limit=30.0,
-  armature=0.01,
-)
-
 E1_ACTUATOR_WAIST = BuiltinPositionActuatorCfg(
   target_names_expr=("waist_yaw_joint",),
   stiffness=200.0,
@@ -161,11 +152,8 @@ E1_ACTUATOR_WRIST_PITCH = BuiltinPositionActuatorCfg(
 # 初始站立姿态配置
 # ============================================================================
 E1_INIT_STATE = EntityCfg.InitialStateCfg(
-  pos=(0.0, 0.0, 0.7),
+  pos=(0.0, 0.0, 0.67),
   joint_pos={
-    "head_yaw_joint": 0.0,
-    "head_pitch_joint": 0.0,
-
     "left_shoulder_pitch_joint": 0.0,
     "left_shoulder_roll_joint": 0.3,
     "left_shoulder_yaw_joint": 0.0,
@@ -212,7 +200,6 @@ FULL_COLLISION = CollisionCfg(
 # 机器人关节组装
 E1_ARTICULATION = EntityArticulationInfoCfg(
   actuators=(
-    E1_ACTUATOR_HEAD,
     E1_ACTUATOR_WAIST,
     E1_ACTUATOR_PITCH,
     E1_ACTUATOR_ROLL,

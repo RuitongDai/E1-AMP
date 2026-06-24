@@ -33,7 +33,7 @@ from mjlab.tasks.velocity.mdp import UniformVelocityCommandCfg
 from mjlab.terrains import TerrainEntityCfg
 from mjlab.viewer import ViewerConfig
 
-# 运动数据目录路径 (修改为 E1 的路径)
+# 运动数据目录路径
 MOTION_DATA_DIR = str(
   Path(__file__).resolve().parent.parent.parent / "data" / "e1_motions"
 )
@@ -50,26 +50,26 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
   """为 Booster E1 创建 AMP 环境配置。"""
 
   # E1 的脚部连杆（那 4 个小球附着的地方）
-  foot_bodies = ("left_ankle_roll_link", "right_ankle_roll_link")
+  foot_geoms = ("l_foot_collision", "r_foot_collision")
 
-  # 脚部与地面接触传感器配置 (改用 mode="body")
+  # 脚部与地面接触传感器配置
   feet_ground_cfg = ContactSensorCfg(
     name="feet_ground_contact",
-    primary=ContactMatch(mode="body", pattern=foot_bodies, entity="robot"),
+    primary=ContactMatch(mode="geom", pattern=foot_geoms, entity="robot"),
     secondary=ContactMatch(mode="body", pattern="terrain"),
     fields=("found", "force"),
     reduce="netforce",
     num_slots=1,
     track_air_time=True,
   )
-  # 非脚部与地面接触传感器配置 (改用 mode="body" 并排除脚部)
+  # 非脚部与地面接触传感器配置
   nonfoot_ground_cfg = ContactSensorCfg(
     name="nonfoot_ground_touch",
     primary=ContactMatch(
-      mode="body",
+      mode="geom",
       entity="robot",
-      pattern=".*",
-      exclude=foot_bodies,
+      pattern=r".*_collision$",
+      exclude=foot_geoms,
     ),
     secondary=ContactMatch(mode="body", pattern="terrain"),
     fields=("found", "force"),
@@ -155,7 +155,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 命令配置 (完全对齐 T1)
+  # 命令配置
   commands: dict[str, CommandTermCfg] = {
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
@@ -166,7 +166,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       heading_control_stiffness=0.5,
       debug_vis=False,
       ranges=UniformVelocityCommandCfg.Ranges(
-        lin_vel_x=(-0.5, 0.7),
+        lin_vel_x=(-0.3, 0.6),
         lin_vel_y=(-0.2, 0.2),
         ang_vel_z=(-0.8, 0.8),
       ),
@@ -195,8 +195,8 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
       },
     ),
   }
-
-  # 奖励配置 (完全恢复 T1 的原版权重)
+  foot_bodies = ("left_ankle_roll_link", "right_ankle_roll_link")
+  # 奖励配置
   rewards = {
     "track_lin_vel_xy": RewardTermCfg(
       func=mdp.track_lin_vel_xy_exp, weight=1.25,
@@ -247,14 +247,14 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     MOTION_DATA_TERM_NAME: MotionDataTermCfg(
       motion_data_dir=MOTION_DATA_DIR,
       motion_data_weights={
-        "female_walk1": 1.0,
-        "female_stand_to_walk": 1.0,
-        "female_walk_to_stand": 1.0,
-        "female_walk_backwards": 1.0,
-        "female_walk_turn_left_45": 1.0,
-        "female_walk_turn_left_90": 1.0,
-        "female_walk_turn_right_45": 1.0,
-        "female_walk_turn_right_90": 1.0,
+        "e1_walk": 1.0,
+        "e1_stand_to_walk": 1.0,
+        "e1_walk_to_stand": 1.0,
+        "e1_walk_back": 1.0,
+        "e1_turn_left": 1.0,
+        "e1_turn_right": 1.0,
+        "e1_left": 1.0,
+        "e1_right": 1.0,
       },
     )
   }

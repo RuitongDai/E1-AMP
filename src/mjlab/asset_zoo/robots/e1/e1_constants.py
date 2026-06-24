@@ -150,8 +150,13 @@ E1_INIT_STATE = EntityCfg.InitialStateCfg(
 # 碰撞配置
 # ============================================================================
 FULL_COLLISION = CollisionCfg(
-  geom_names_expr=(".*",),
-  condim={".*": 3},
+  geom_names_expr=(".*_collision",),
+  # 左右脚底面接触维度为 3，其他部分为 1
+  condim={r"^[lr]_foot_collision$": 3, ".*_collision": 1},
+  # 脚底接触优先级设置为 1
+  priority={r"^[lr]_foot_collision$": 1},
+  # 脚底摩擦系数
+  friction={r"^[lr]_foot_collision$": (0.6,)},
 )
 
 # 机器人关节组装

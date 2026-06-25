@@ -88,7 +88,7 @@ def analyze_pkl_motion(pkl_file: Path, preview: int) -> None:
     fps = float(data["fps"])
     dt = 1.0 / fps
 
-    # 提取基座的位置和姿态 (已经是 wxyz 格式)
+    # 提取基座的位置和姿态
     base_pos_w = data["root_pos"]  # [T, 3]
     base_quat_w = data["root_rot"]  # [T, 4] wxyz
     num_frames = base_pos_w.shape[0]

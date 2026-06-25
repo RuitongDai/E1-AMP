@@ -49,7 +49,7 @@ MOTION_DATA_TERM_NAME = "e1_motion"
 def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
   """为 Booster E1 创建 AMP 环境配置。"""
 
-  # E1 的脚部连杆（那 4 个小球附着的地方）
+  # E1脚部碰撞几何体
   foot_geoms = ("l_foot_collision", "r_foot_collision")
 
   # 脚部与地面接触传感器配置
@@ -231,7 +231,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     ),
   }
 
-  # 终止条件配置 (完全恢复 T1 的秒杀机制)
+  # 终止条件配置
   terminations = {
     "time_out": TerminationTermCfg(func=envs_mdp.time_out, time_out=True),
     "fell_over": TerminationTermCfg(
@@ -322,7 +322,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     twist_cmd = cfg.commands["twist"]
     assert isinstance(twist_cmd, UniformVelocityCommandCfg)
     twist_cmd.ranges = UniformVelocityCommandCfg.Ranges(
-      lin_vel_x=(0.3, 0.3),
+      lin_vel_x=(0.5, 0.5),
       lin_vel_y=(0.0, 0.0),
       ang_vel_z=(0.0, 0.0),
     )

@@ -48,7 +48,7 @@ if __name__ == "__main__":
     with open(args.pkl_file, "rb") as f:
         amp_data = pickle.load(f)
 
-    # AMP 格式提取 (注意：此时 root_rot 已经是 wxyz 格式了！)
+    # AMP 格式提取，此时root_rot是wxyz格式
     fps = amp_data.get("fps", 30.0)
     root_pos = amp_data["root_pos"]
     root_rot_wxyz = amp_data["root_rot"]
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             rot_wxyz = root_rot_wxyz[idx]
             joints = dof_pos[idx]
 
-            # 拼装完整的 qpos (AMP处理后的 rot 已经是 wxyz，直接拼即可)
+            # 拼装完整的 qpos
             qpos = np.concatenate([pos, rot_wxyz, joints])
             data.qpos[:] = qpos
 

@@ -322,7 +322,7 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     twist_cmd = cfg.commands["twist"]
     assert isinstance(twist_cmd, UniformVelocityCommandCfg)
     twist_cmd.ranges = UniformVelocityCommandCfg.Ranges(
-      lin_vel_x=(0.5, 0.5),
+      lin_vel_x=(0.6, 0.6),
       lin_vel_y=(0.0, 0.0),
       ang_vel_z=(0.0, 0.0),
     )

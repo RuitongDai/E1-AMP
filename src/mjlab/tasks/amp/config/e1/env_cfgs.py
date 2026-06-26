@@ -247,9 +247,8 @@ def e1_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     MOTION_DATA_TERM_NAME: MotionDataTermCfg(
       motion_data_dir=MOTION_DATA_DIR,
       motion_data_weights={
+        "e1_stand": 1.0,
         "e1_walk": 1.0,
-        "e1_stand_to_walk": 1.0,
-        "e1_walk_to_stand": 1.0,
         "e1_walk_back": 1.0,
         "e1_turn_left": 1.0,
         "e1_turn_right": 1.0,

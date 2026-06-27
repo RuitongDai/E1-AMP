@@ -10,12 +10,11 @@ import mujoco
 
 # ================= 手脚关键连杆 (Body)=================
 KEY_BODY_NAMES = [
-    "left_wrist_pitch_link",   # 左手
-    "right_wrist_pitch_link",  # 右手
     "left_ankle_roll_link",    # 左脚
     "right_ankle_roll_link",   # 右脚
     "right_shoulder_yaw_link",
-    "left_shoulder_yaw_link"
+    "left_shoulder_yaw_link",
+    "pelvis",
 ]
 
 # 循环动作关键词匹配

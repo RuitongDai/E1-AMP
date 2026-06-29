@@ -17,7 +17,7 @@ KEY_BODY_NAMES = [
     "right_ankle_roll_link",
 ]
 
-# 循环动作关键词匹配 (改为匹配 x3 的动作前缀)
+# 循环动作关键词匹配
 WRAP_MOTIONS = {
     "x3_walk",
 }

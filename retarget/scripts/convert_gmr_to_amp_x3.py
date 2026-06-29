@@ -1,5 +1,6 @@
 """Convert GMR retargeted X3 motion .pkl files to mjlab AMP format.
 使用纯 MuJoCo 引擎进行绝对精准的高度对齐和关键点提取。
+python retarget/scripts/convert_gmr_to_amp_x3.py --src_dir /home/dai/datasets_retargeted/x3_amp/ --dst_dir src/mjlab/tasks/amp/data/x3_motions --xml_path src/mjlab/asset_zoo/robots/x3/xmls/Moya01_V2.xml
 """
 
 import argparse
@@ -14,8 +15,6 @@ KEY_BODY_NAMES = [
     "right_wrist_pitch_link",
     "left_ankle_roll_link",
     "right_ankle_roll_link",
-    "right_shoulder_pitch_link",
-    "left_shoulder_pitch_link",
 ]
 
 # 循环动作关键词匹配 (改为匹配 x3 的动作前缀)

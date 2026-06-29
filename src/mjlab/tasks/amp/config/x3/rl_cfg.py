@@ -69,7 +69,7 @@ def x3_amp_runner_cfg() -> RslRlAmpOnPolicyRunnerCfg:
       "discriminator_demonstration": ["disc_demo"],
     },
     experiment_name="x3_amp",
-    save_interval=50,
+    save_interval=500,
     num_steps_per_env=24,
     max_iterations=50_000,
   )

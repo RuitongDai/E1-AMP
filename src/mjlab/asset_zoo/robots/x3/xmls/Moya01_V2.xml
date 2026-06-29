@@ -1,8 +1,7 @@
 <mujoco model="Moya01">
-  <compiler angle="radian" meshdir="./meshes/"/>
+  <compiler angle="radian" meshdir="../meshes/"/>
   <default>
     <joint damping="0.1" armature="0.01" frictionloss="0.1"/>
-    <!-- 新增geom默认配置，减少重复属性 -->
     <geom rgba="0.75294 0.75294 0.75294 1" type="mesh"/>
     <default class="collision">
         <geom type="capsule" priority="1" condim="6" group="3"/>
@@ -103,14 +102,7 @@
                   <inertial pos="0.0476389 0.00019352 -0.00796802" quat="0 0.725956 0 0.687741" mass="0.504" diaginertia="0.000864388 0.00084428 0.000169422"/>
                   <joint name="left_ankle_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.5236 0.5236" actuatorfrcrange="-12 12"/>
                   <geom contype="0" conaffinity="0" group="1" density="0" mesh="left_ankle_roll_link_v2"/>
-                  <!-- 修复缺失type的geom，指定为sphere -->
-                  <geom name="left_foot1_collision" class="foot_capsule" fromto=" 0.12 -0.026 -0.025 0.03 -0.027 -0.025"/>
-                  <geom name="left_foot2_collision" class="foot_capsule" fromto="-0.056 -0.018 -0.025 0.135 -0.018 -0.025"/>
-                  <geom name="left_foot3_collision" class="foot_capsule" fromto="-0.062 -0.01 -0.025 0.14 -0.01 -0.025"/>
-                  <geom name="left_foot4_collision" class="foot_capsule" fromto="-0.062 0 -0.025 0.14 0 -0.025"/>
-                  <geom name="left_foot5_collision" class="foot_capsule" fromto="-0.062 0.01 -0.025 0.135 0.01 -0.025"/>
-                  <geom name="left_foot6_collision" class="foot_capsule" fromto="-0.056 0.018 -0.025 0.03 0.018 -0.025"/>
-                  <geom name="left_foot7_collision" class="foot_capsule" fromto=" 0.12 0.026 -0.025 0.03 0.026 -0.025"/>
+                  <geom name="l_foot_collision" type="box" size="0.115 0.039 0.005" pos="0.038 0 -0.0225" group="2" contype="1" conaffinity="1" rgba="0.8 0.2 0.2 0.5"/>
                   <site name="left_foot" rgba="1 0 0 1" pos="0.04 0 -0.00"/>
                 </body>
               </body>
@@ -151,14 +143,7 @@
                   <inertial pos="0.0476389 0.00019352 -0.00796802" quat="0 0.725956 0 0.687741" mass="0.504" diaginertia="0.000864388 0.00084428 0.000169422"/>
                   <joint name="right_ankle_roll_joint" pos="0 0 0" axis="1 0 0" range="-0.5236 0.5236" actuatorfrcrange="-12 12"/>
                   <geom contype="0" conaffinity="0" group="1" density="0" mesh="right_ankle_roll_link_v2"/>
-                  <!-- 修复缺失type的geom，指定为sphere -->
-                  <geom name="right_foot1_collision" class="foot_capsule" fromto=" 0.12 -0.026 -0.025 0.03 -0.027 -0.025"/>
-                  <geom name="right_foot2_collision" class="foot_capsule" fromto="-0.056 -0.018 -0.025 0.135 -0.018 -0.025"/>
-                  <geom name="right_foot3_collision" class="foot_capsule" fromto="-0.062 -0.01 -0.025 0.14 -0.01 -0.025"/>
-                  <geom name="right_foot4_collision" class="foot_capsule" fromto="-0.062 0 -0.025 0.14 0 -0.025"/>
-                  <geom name="right_foot5_collision" class="foot_capsule" fromto="-0.062 0.01 -0.025 0.135 0.01 -0.025"/>
-                  <geom name="right_foot6_collision" class="foot_capsule" fromto="-0.056 0.018 -0.025 0.03 0.018 -0.025"/>
-                  <geom name="right_foot7_collision" class="foot_capsule" fromto=" 0.12 0.026 -0.025 0.03 0.026 -0.025"/>
+                  <geom name="r_foot_collision" type="box" size="0.115 0.039 0.005" pos="0.038 0 -0.0225" group="2" contype="1" conaffinity="1" rgba="0.8 0.2 0.2 0.5"/>
                   <site name="right_foot" rgba="1 0 0 1" pos="0.04 0 -0.00"/>
 
                 </body>
@@ -315,9 +300,7 @@
 <!--    <motor name="right_wrist_yaw_joint" joint="right_wrist_yaw_joint"/>-->
 <!--  </actuator>-->
   <sensor>
-    <gyro name="imu_ang_vel" site="imu_in_pelvis"/>
-    <velocimeter name="imu_lin_vel" site="imu_in_pelvis"/>
-    <accelerometer name="imu_lin_acc" site="imu_in_pelvis"/>
-    <subtreeangmom name="root_angmom" body="pelvis"/>
+    <framequat name="orientation" objtype="site" noise="0.001" objname="imu_in_pelvis" />
+    <gyro name="angular-velocity" site="imu_in_pelvis" noise="0.005" />
   </sensor>
 </mujoco>

@@ -1,29 +1,34 @@
-"""Booster T1 (23自由度)在MuJoCo关节顺序中的对称性函数。
+"""Moya01 V2 (X3, 28自由度)在MuJoCo关节顺序中的对称性函数。
 
 MuJoCo (DFS深度优先搜索) 关节顺序:
-#0:  AAHead_yaw               (Z轴) 取反  [中线]
-#1:  Head_pitch               (Y轴) 保持  [中线]
-#2:  Left_Shoulder_Pitch      (Y轴) 保持
-#3:  Left_Shoulder_Roll       (X轴) 取反
-#4:  Left_Elbow_Pitch         (Y轴) 保持
-#5:  Left_Elbow_Yaw           (Z轴) 取反
-#6:  Right_Shoulder_Pitch     (Y轴) 保持
-#7:  Right_Shoulder_Roll      (X轴) 取反
-#8:  Right_Elbow_Pitch        (Y轴) 保持
-#9:  Right_Elbow_Yaw          (Z轴) 取反
-#10: Waist                    (Z轴) 取反  [中线]
-#11: Left_Hip_Pitch           (Y轴) 保持
-#12: Left_Hip_Roll            (X轴) 取反
-#13: Left_Hip_Yaw             (Z轴) 取反
-#14: Left_Knee_Pitch          (Y轴) 保持
-#15: Left_Ankle_Pitch         (Y轴) 保持
-#16: Left_Ankle_Roll          (X轴) 取反
-#17: Right_Hip_Pitch          (Y轴) 保持
-#18: Right_Hip_Roll           (X轴) 取反
-#19: Right_Hip_Yaw            (Z轴) 取反
-#20: Right_Knee_Pitch         (Y轴) 保持
-#21: Right_Ankle_Pitch        (Y轴) 保持
-#22: Right_Ankle_Roll         (X轴) 取反
+#0:  left_hip_pitch        (Y轴) 保持
+#1:  left_hip_roll         (X轴) 取反
+#2:  left_hip_yaw          (Z轴) 取反
+#3:  left_knee             (Y轴) 保持
+#4:  left_ankle_pitch      (Y轴) 保持
+#5:  left_ankle_roll       (X轴) 取反
+#6:  right_hip_pitch       (Y轴) 保持
+#7:  right_hip_roll        (X轴) 取反
+#8:  right_hip_yaw         (Z轴) 取反
+#9:  right_knee            (Y轴) 保持
+#10: right_ankle_pitch     (Y轴) 保持
+#11: right_ankle_roll      (X轴) 取反
+#12: waist_roll            (X轴) 取反 [中线]
+#13: waist_yaw             (Z轴) 取反 [中线]
+#14: left_shoulder_pitch   (Y轴) 保持
+#15: left_shoulder_roll    (X轴) 取反
+#16: left_shoulder_yaw     (Z轴) 取反
+#17: left_elbow            (Y轴) 保持
+#18: left_wrist_roll       (X轴) 取反
+#19: left_wrist_pitch      (Y轴) 保持
+#20: left_wrist_yaw        (Z轴) 取反
+#21: right_shoulder_pitch  (Y轴) 保持
+#22: right_shoulder_roll   (X轴) 取反
+#23: right_shoulder_yaw    (Z轴) 取反
+#24: right_elbow           (Y轴) 保持
+#25: right_wrist_roll      (X轴) 取反
+#26: right_wrist_pitch     (Y轴) 保持
+#27: right_wrist_yaw       (Z轴) 取反
 """
 
 from __future__ import annotations
@@ -38,28 +43,20 @@ if TYPE_CHECKING:
 
 __all__ = ["compute_symmetric_states"]
 
-NUM_JOINTS = 23
+NUM_JOINTS = 28
 
-# 左右关节交换对 (MuJoCo DFS顺序)
-_LEFT_INDICES = [2, 3, 4, 5, 11, 12, 13, 14, 15, 16]
-_RIGHT_INDICES = [6, 7, 8, 9, 17, 18, 19, 20, 21, 22]
+# 左右关节交换对
+_LEFT_INDICES = [0, 1, 2, 3, 4, 5, 14, 15, 16, 17, 18, 19, 20]
+_RIGHT_INDICES = [6, 7, 8, 9, 10, 11, 21, 22, 23, 24, 25, 26, 27]
 
 # 交换后需要取反的索引 (X轴和Z轴关节)
 _NEGATE_INDICES = [
-  0,   # AAHead_yaw (Z轴)
-  3,   # Left_Shoulder_Roll (X轴)
-  5,   # Left_Elbow_Yaw (Z轴)
-  7,   # Right_Shoulder_Roll (X轴)
-  9,   # Right_Elbow_Yaw (Z轴)
-  10,  # Waist (Z轴)
-  12,  # Left_Hip_Roll (X轴)
-  13,  # Left_Hip_Yaw (Z轴)
-  16,  # Left_Ankle_Roll (X轴)
-  18,  # Right_Hip_Roll (X轴)
-  19,  # Right_Hip_Yaw (Z轴)
-  22,  # Right_Ankle_Roll (X轴)
+  1, 2, 5,          # 左腿 Roll, Yaw
+  7, 8, 11,         # 右腿 Roll, Yaw
+  12, 13,           # 腰部 Roll, Yaw
+  15, 16, 18, 20,   # 左臂 Roll, Yaw
+  22, 23, 25, 27,   # 右臂 Roll, Yaw
 ]
-
 
 @torch.no_grad()
 def compute_symmetric_states(
@@ -91,31 +88,25 @@ def compute_symmetric_states(
 
   return obs_aug, actions_aug
 
-
 def _transform_policy_obs(obs: torch.Tensor) -> torch.Tensor:
   """对策略网络观测应用左右对称变换。
-
-  数据布局: 角速度(3) | 重力投影(3) | 命令(3) |
-          关节位置(23) | 关节速度(23) | 动作(23)
-  总维度: 78维
+  数据布局: 角速度(3) | 重力投影(3) | 命令(3) | 关节位置(28) | 关节速度(28) | 动作(28)
+  总维度: 93维
   """
   obs = obs.clone()
   d = obs.device
   obs[:, 0:3] *= torch.tensor([-1, 1, -1], device=d)
   obs[:, 3:6] *= torch.tensor([1, -1, 1], device=d)
   obs[:, 6:9] *= torch.tensor([1, -1, -1], device=d)
-  obs[:, 9:32] = _switch_joints(obs[:, 9:32])
-  obs[:, 32:55] = _switch_joints(obs[:, 32:55])
-  obs[:, 55:78] = _switch_joints(obs[:, 55:78])
+  obs[:, 9:37] = _switch_joints(obs[:, 9:37])
+  obs[:, 37:65] = _switch_joints(obs[:, 37:65])
+  obs[:, 65:93] = _switch_joints(obs[:, 65:93])
   return obs
-
 
 def _transform_critic_obs(obs: torch.Tensor) -> torch.Tensor:
   """对评论网络观测应用左右对称变换。
-
-  数据布局: 线速度(3) | 角速度(3) | 重力投影(3) | 命令(3) |
-          关节位置(23) | 关节速度(23) | 动作(23)
-  总维度: 81维
+  数据布局: 线速度(3) | 角速度(3) | 重力投影(3) | 命令(3) | 关节位置(28) | 关节速度(28) | 动作(28)
+  总维度: 96维
   """
   obs = obs.clone()
   d = obs.device
@@ -123,16 +114,14 @@ def _transform_critic_obs(obs: torch.Tensor) -> torch.Tensor:
   obs[:, 3:6] *= torch.tensor([-1, 1, -1], device=d)
   obs[:, 6:9] *= torch.tensor([1, -1, 1], device=d)
   obs[:, 9:12] *= torch.tensor([1, -1, -1], device=d)
-  obs[:, 12:35] = _switch_joints(obs[:, 12:35])
-  obs[:, 35:58] = _switch_joints(obs[:, 35:58])
-  obs[:, 58:81] = _switch_joints(obs[:, 58:81])
+  obs[:, 12:40] = _switch_joints(obs[:, 12:40])
+  obs[:, 40:68] = _switch_joints(obs[:, 40:68])
+  obs[:, 68:96] = _switch_joints(obs[:, 68:96])
   return obs
 
-
 def _transform_actions(actions: torch.Tensor) -> torch.Tensor:
-  """对动作(23维)应用左右对称变换。"""
+  """对动作(28维)应用左右对称变换。"""
   return _switch_joints(actions.clone())
-
 
 def _switch_joints(joint_data: torch.Tensor) -> torch.Tensor:
   """交换左右关节并对X/Z轴关节取反。"""

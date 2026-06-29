@@ -1,4 +1,4 @@
-"""RL configuration for Booster T1 AMP task."""
+"""RL configuration for Moya01 V2 (X3) AMP task."""
 
 from mjlab.rl import (
   RslRlAmpCfg,
@@ -7,11 +7,11 @@ from mjlab.rl import (
   RslRlModelCfg,
   RslRlPpoAmpAlgorithmCfg,
 )
-from mjlab.tasks.amp.config.t1.symmetry import compute_symmetric_states
+from mjlab.tasks.amp.config.x3.symmetry import compute_symmetric_states
 
 
-def t1_amp_runner_cfg() -> RslRlAmpOnPolicyRunnerCfg:
-  """Create RL runner configuration for Booster T1 AMP task."""
+def x3_amp_runner_cfg() -> RslRlAmpOnPolicyRunnerCfg:
+  """Create RL runner configuration for X3 AMP task."""
   return RslRlAmpOnPolicyRunnerCfg(
     actor=RslRlModelCfg(
       hidden_dims=(512, 256, 128),
@@ -68,7 +68,7 @@ def t1_amp_runner_cfg() -> RslRlAmpOnPolicyRunnerCfg:
       "discriminator": ["disc"],
       "discriminator_demonstration": ["disc_demo"],
     },
-    experiment_name="t1_amp",
+    experiment_name="x3_amp",
     save_interval=50,
     num_steps_per_env=24,
     max_iterations=50_000,

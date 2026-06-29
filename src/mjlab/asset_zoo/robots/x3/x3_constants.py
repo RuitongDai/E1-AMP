@@ -198,9 +198,9 @@ X3_ACT_WRIST_YAW = DcMotorActuatorCfg(
 X3_INIT_STATE = EntityCfg.InitialStateCfg(
   pos=(0.0, 0.0, 0.80),
   joint_pos={
-    ".*_hip_pitch_joint": -0.1,
-    ".*_knee_joint": 0.2,
-    ".*_ankle_pitch_joint": -0.1,
+    ".*_hip_pitch_joint": 0.0,
+    ".*_knee_joint": 0.0,
+    ".*_ankle_pitch_joint": 0.0,
     ".*_elbow_joint": 0.0,
     "left_shoulder_roll_joint": 0.0,
     "left_shoulder_pitch_joint": 0.0,

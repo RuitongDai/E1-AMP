@@ -20,100 +20,177 @@ X3_TRAIN_XML: Path = _X3_DIR / "xmls" / "Moya01_V2.xml"
 
 assert X3_XML.exists(), f"X3 XML not found: {X3_XML}"
 
+
 def get_assets(meshdir: str) -> dict[str, bytes]:
   assets: dict[str, bytes] = {}
-  update_assets(assets, _X3_DIR / "assets", meshdir)
+  update_assets(assets, _X3_DIR / "meshes", meshdir)
   return assets
+
 
 def get_spec() -> mujoco.MjSpec:
   spec = mujoco.MjSpec.from_file(str(X3_XML))
   spec.assets = get_assets(spec.meshdir)
   return spec
 
+
 def get_spec_train() -> mujoco.MjSpec:
   return mujoco.MjSpec.from_file(str(X3_TRAIN_XML))
 
+
 # ============================================================================
 # 执行器配置
+# - effort_limit / saturation_effort / velocity_limit 按 X3 URDF 的 limit 对齐。
 # ============================================================================
 
-X3_ACT_LEGS = DcMotorActuatorCfg(
-  target_names_expr=(
-    ".*_hip_yaw_joint",
-    ".*_hip_roll_joint",
-    ".*_knee_joint"
-  ),
-  stiffness=100.0,
-  damping=2.0,
-  effort_limit=75.0,
-  saturation_effort=75.0,
-  velocity_limit=15.0,
-  armature=0.01,
-)
-
+# 髋关节俯仰
+# URDF: effort=75, velocity=6.28
 X3_ACT_HIPS_PITCH = DcMotorActuatorCfg(
   target_names_expr=(".*_hip_pitch_joint",),
   stiffness=100.0,
   damping=2.0,
   effort_limit=75.0,
   saturation_effort=75.0,
-  velocity_limit=15.0,
+  velocity_limit=6.28,
   armature=0.01,
 )
 
-X3_ACT_FEET = DcMotorActuatorCfg(
-  target_names_expr=(".*_ankle_pitch_joint", ".*_ankle_roll_joint"),
+# 髋关节横滚
+# URDF: effort=87, velocity=5.44
+X3_ACT_HIP_ROLL = DcMotorActuatorCfg(
+  target_names_expr=(".*_hip_roll_joint",),
+  stiffness=100.0,
+  damping=2.0,
+  effort_limit=87.0,
+  saturation_effort=87.0,
+  velocity_limit=5.44,
+  armature=0.01,
+)
+
+# 髋关节偏航
+# URDF: effort=87, velocity=5.44
+X3_ACT_HIP_YAW = DcMotorActuatorCfg(
+  target_names_expr=(".*_hip_yaw_joint",),
+  stiffness=100.0,
+  damping=2.0,
+  effort_limit=87.0,
+  saturation_effort=87.0,
+  velocity_limit=5.44,
+  armature=0.01,
+)
+
+# 膝关节
+# URDF: effort=120, velocity=12.56
+X3_ACT_KNEE = DcMotorActuatorCfg(
+  target_names_expr=(".*_knee_joint",),
+  stiffness=100.0,
+  damping=2.0,
+  effort_limit=120.0,
+  saturation_effort=120.0,
+  velocity_limit=12.56,
+  armature=0.01,
+)
+
+# 踝关节俯仰
+# URDF: effort=89, velocity=17.8
+X3_ACT_ANKLE_PITCH = DcMotorActuatorCfg(
+  target_names_expr=(".*_ankle_pitch_joint",),
   stiffness=30.0,
   damping=2.0,
-  effort_limit=75.0,
-  saturation_effort=75.0,
-  velocity_limit=10.0,
+  effort_limit=89.0,
+  saturation_effort=89.0,
+  velocity_limit=17.8,
   armature=0.01,
 )
 
+# 踝关节横滚
+# URDF: effort=12, velocity=4.19
+X3_ACT_ANKLE_ROLL = DcMotorActuatorCfg(
+  target_names_expr=(".*_ankle_roll_joint",),
+  stiffness=30.0,
+  damping=2.0,
+  effort_limit=12.0,
+  saturation_effort=12.0,
+  velocity_limit=4.19,
+  armature=0.01,
+)
+
+# 腰部横滚 / 偏航
+# URDF: waist_roll effort=87 velocity=5.44
+# URDF: waist_yaw  effort=87 velocity=5.44
 X3_ACT_WAIST = DcMotorActuatorCfg(
   target_names_expr=("waist_roll_joint", "waist_yaw_joint"),
   stiffness=100.0,
   damping=2.0,
-  effort_limit=50.0,
-  saturation_effort=50.0,
-  velocity_limit=10.0,
+  effort_limit=87.0,
+  saturation_effort=87.0,
+  velocity_limit=5.44,
   armature=0.01,
 )
 
-X3_ACT_SHOULDER = DcMotorActuatorCfg(
+# 肩膀俯仰
+# URDF: effort=48, velocity=6.28
+X3_ACT_SHOULDER_PITCH = DcMotorActuatorCfg(
+  target_names_expr=(".*_shoulder_pitch_joint",),
+  stiffness=30.0,
+  damping=2.0,
+  effort_limit=48.0,
+  saturation_effort=48.0,
+  velocity_limit=6.28,
+  armature=0.008,
+)
+
+# 肩膀横滚 / 偏航
+# URDF: effort=84, velocity=6.07
+X3_ACT_SHOULDER_ROLL_YAW = DcMotorActuatorCfg(
   target_names_expr=(
-    ".*_shoulder_pitch_joint",
     ".*_shoulder_roll_joint",
     ".*_shoulder_yaw_joint",
   ),
   stiffness=30.0,
   damping=2.0,
-  effort_limit=25.0,
-  saturation_effort=25.0,
-  velocity_limit=10.0,
+  effort_limit=84.0,
+  saturation_effort=84.0,
+  velocity_limit=6.07,
   armature=0.008,
 )
 
+# 肘关节 / 腕部横滚
+# URDF: elbow effort=37 velocity=7.33
+# URDF: wrist_roll effort=37 velocity=7.33
 X3_ACT_FORE_ARM = DcMotorActuatorCfg(
   target_names_expr=(".*_elbow_joint", ".*_wrist_roll_joint"),
   stiffness=30.0,
   damping=2.0,
-  effort_limit=25.0,
-  saturation_effort=25.0,
-  velocity_limit=10.0,
+  effort_limit=37.0,
+  saturation_effort=37.0,
+  velocity_limit=7.33,
   armature=0.005,
 )
 
-X3_ACT_HAND = DcMotorActuatorCfg(
-  target_names_expr=(".*_wrist_pitch_joint", ".*_wrist_yaw_joint"),
+# 腕部俯仰
+# URDF: effort=20, velocity=6.28
+X3_ACT_WRIST_PITCH = DcMotorActuatorCfg(
+  target_names_expr=(".*_wrist_pitch_joint",),
   stiffness=20.0,
   damping=2.0,
-  effort_limit=5.0,
-  saturation_effort=5.0,
-  velocity_limit=10.0,
+  effort_limit=20.0,
+  saturation_effort=20.0,
+  velocity_limit=6.28,
   armature=0.005,
 )
+
+# 腕部偏航
+# URDF: effort=25, velocity=4.44
+X3_ACT_WRIST_YAW = DcMotorActuatorCfg(
+  target_names_expr=(".*_wrist_yaw_joint",),
+  stiffness=20.0,
+  damping=2.0,
+  effort_limit=25.0,
+  saturation_effort=25.0,
+  velocity_limit=4.44,
+  armature=0.005,
+)
+
 
 # ============================================================================
 # 初始站立姿态配置
@@ -133,6 +210,7 @@ X3_INIT_STATE = EntityCfg.InitialStateCfg(
   joint_vel={".*": 0.0},
 )
 
+
 # ============================================================================
 # 碰撞配置
 # ============================================================================
@@ -146,21 +224,28 @@ FULL_COLLISION = CollisionCfg(
   friction={r"^[lr]_foot_collision$": (0.6,)},
 )
 
+
 # ============================================================================
 # 机器人关节配置
 # ============================================================================
 X3_ARTICULATION = EntityArticulationInfoCfg(
   actuators=(
-    X3_ACT_LEGS,
     X3_ACT_HIPS_PITCH,
-    X3_ACT_FEET,
+    X3_ACT_HIP_ROLL,
+    X3_ACT_HIP_YAW,
+    X3_ACT_KNEE,
+    X3_ACT_ANKLE_PITCH,
+    X3_ACT_ANKLE_ROLL,
     X3_ACT_WAIST,
-    X3_ACT_SHOULDER,
+    X3_ACT_SHOULDER_PITCH,
+    X3_ACT_SHOULDER_ROLL_YAW,
     X3_ACT_FORE_ARM,
-    X3_ACT_HAND,
+    X3_ACT_WRIST_PITCH,
+    X3_ACT_WRIST_YAW,
   ),
   soft_joint_pos_limit_factor=0.9,
 )
+
 
 def get_x3_robot_cfg(play: bool = False) -> EntityCfg:
   """获取 X3 机器人配置"""
@@ -170,6 +255,7 @@ def get_x3_robot_cfg(play: bool = False) -> EntityCfg:
     spec_fn=get_spec if play else get_spec_train,
     articulation=X3_ARTICULATION,
   )
+
 
 # ============================================================================
 # 计算动作缩放因子

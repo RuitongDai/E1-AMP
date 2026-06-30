@@ -29,7 +29,7 @@ def print_status(state):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AMP 处理后数据的专用播放器")
     parser.add_argument("--pkl_file", type=str, required=True, help="AMP 格式的 .pkl 文件路径")
-    parser.add_argument("--xml_file", type=str, default="src/mjlab/asset_zoo/robots/e1/xmls/E1_25dof.xml",
+    parser.add_argument("--xml_file", type=str, default="src/mjlab/asset_zoo/robots/x3/xmls/Moya01_V2.xml",
                         help="机器人的 XML 模型路径")
     args = parser.parse_args()
 

@@ -123,14 +123,14 @@ def x3_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
       resampling_time_range=(3.0, 8.0),
-      rel_standing_envs=0.1,
+      rel_standing_envs=0.2,
       rel_heading_envs=0.0,
       heading_command=False,
       heading_control_stiffness=0.5,
       debug_vis=False,
       ranges=UniformVelocityCommandCfg.Ranges(
         lin_vel_x=(-0.5, 0.7),
-        lin_vel_y=(-0.2, 0.2),
+        lin_vel_y=(-0.3, 0.3),
         ang_vel_z=(-0.8, 0.8),
       ),
     ),
@@ -184,10 +184,10 @@ def x3_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     MOTION_DATA_TERM_NAME: MotionDataTermCfg(
       motion_data_dir=MOTION_DATA_DIR,
       motion_data_weights={
-        "x3_left": 1.0,
-        "x3_right": 1.0,
+        "x3_left": 2.5,
+        "x3_right": 2.5,
         "x3_walk": 1.0,
-        "x3_stand": 1.0,
+        "x3_stand": 2.0,
         "x3_stand_to_walk": 1.0,
         "x3_turn_left": 1.0,
         "x3_turn_right": 1.0,
@@ -238,7 +238,9 @@ def x3_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
     twist_cmd = cfg.commands["twist"]
     assert isinstance(twist_cmd, UniformVelocityCommandCfg)
     twist_cmd.ranges = UniformVelocityCommandCfg.Ranges(
-      lin_vel_x=(0.3, 0.3), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0),
+      lin_vel_x=(0.7, 0.7),
+      lin_vel_y=(0.0, 0.0),
+      ang_vel_z=(0.0, 0.0),
     )
     twist_cmd.rel_standing_envs = 0.0
     twist_cmd.resampling_time_range = (1e9, 1e9)

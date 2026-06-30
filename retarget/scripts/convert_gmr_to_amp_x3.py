@@ -15,6 +15,8 @@ KEY_BODY_NAMES = [
     "right_wrist_pitch_link",
     "left_ankle_roll_link",
     "right_ankle_roll_link",
+    "left_shoulder_pitch_link",
+    "right_shoulder_pitch_link",
 ]
 
 # 循环动作关键词匹配

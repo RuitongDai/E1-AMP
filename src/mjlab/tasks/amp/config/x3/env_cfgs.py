@@ -187,7 +187,7 @@ def x3_amp_env_cfg(play: bool = False) -> AmpEnvCfg:
         "x3_left": 2.5,
         "x3_right": 2.5,
         "x3_walk": 1.0,
-        "x3_stand": 2.0,
+        "x3_stand": 1.5,
         "x3_stand_to_walk": 1.0,
         "x3_turn_left": 1.0,
         "x3_turn_right": 1.0,
